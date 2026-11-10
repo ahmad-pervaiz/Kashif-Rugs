@@ -4,25 +4,29 @@ const orderSchema = new mongoose.Schema({
   customerName: {
     type: String,
     required: [true, 'Customer name is required'],
+    maxlength: 120,
     trim: true
   },
   email: {
     type: String,
     required: [true, 'Email is required'],
+    maxlength: 254,
+    match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     trim: true,
     lowercase: true
   },
   phone: {
     type: String,
     required: [true, 'Phone number is required'],
+    maxlength: 40,
     trim: true
   },
   address: {
-    street: { type: String, required: true, trim: true },
-    city: { type: String, required: true, trim: true },
-    state: { type: String, required: true, trim: true },
-    zipCode: { type: String, required: true, trim: true },
-    country: { type: String, required: true, trim: true }
+    street: { type: String, required: true, trim: true, maxlength: 300 },
+    city: { type: String, required: true, trim: true, maxlength: 300 },
+    state: { type: String, required: true, trim: true, maxlength: 300 },
+    zipCode: { type: String, required: true, trim: true, maxlength: 300 },
+    country: { type: String, required: true, trim: true, maxlength: 300 }
   },
   items: [{
     carpet: {
@@ -52,6 +56,7 @@ const orderSchema = new mongoose.Schema({
   },
   notes: {
     type: String,
+    maxlength: 2000,
     trim: true
   },
   createdAt: {
