@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react'
+import { api, setAdminToken, adminHeaders } from '../services/api'
+import ReviewModeration from '../components/ReviewModeration'
+import { getImageUrl } from '../services/carpetService'
 import AdminForm from '../components/AdminForm'
 import { getAllCarpets, createCarpet, updateCarpet, deleteCarpet } from '../services/carpetService'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Admin() {
+  const [authenticated, setAuthenticated] = useState(false)
+  const [token, setToken] = useState('')
+  const [authError, setAuthError] = useState('')
+  const [formKey, setFormKey] = useState(0)
   const [carpets, setCarpets] = useState([])
   const [editingCarpet, setEditingCarpet] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -19,7 +26,7 @@ export default function Admin() {
     } catch (err) {
       console.error(err)
       // Removing alert on load to avoid annoyance if backend is down initially, or keep it if critical.
-      // alert('Failed to fetch carpets') 
+      // alert('Failed to fetch carpets')
     }
   }
 
@@ -27,13 +34,14 @@ export default function Admin() {
     try {
       setLoading(true)
       await createCarpet(formData)
-      alert('Carpet added successfully!')
+      setFormKey(k => k + 1)
+      alert('Rug added successfully!')
       fetchCarpets()
-      // Clear form logic might be needed here, but AdminForm state might persist. 
+      // Clear form logic might be needed here, but AdminForm state might persist.
       // Actually AdminForm state resets if initialData changes or we might need a way to reset it.
       // But for now let's assume it's fine.
     } catch (err) {
-      alert('Failed to add carpet: ' + err.message)
+      alert('Failed to add rug: ' + (err.response?.data?.message || err.message))
     } finally {
       setLoading(false)
     }
@@ -65,6 +73,11 @@ export default function Admin() {
     }
   }
 
+  if (!authenticated) return <div className="max-w-lg mx-auto p-8 text-white"><h1 className="text-3xl mb-6">Store administration</h1><form className="space-y-4" onSubmit={async e => {
+    e.preventDefault(); setAdminToken(token);
+    try { await api.get('/reviews', { headers: adminHeaders() }); setAuthenticated(true); setToken(''); setAuthError(''); }
+    catch { setAdminToken(''); setAuthError('Access denied. Check your admin token and server configuration.'); }
+  }}><label>Admin token<input className="input mt-2" type="password" autoComplete="off" required value={token} onChange={e => setToken(e.target.value)} /></label><button className="bg-blue-600 rounded px-5 py-3">Sign in</button><p role="alert">{authError}</p></form></div>
   return (
     <div className="min-h-screen bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -76,6 +89,8 @@ export default function Admin() {
           Admin Panel
         </motion.h1>
 
+        <button className="text-white mb-6 underline" onClick={() => { setAdminToken(''); setAuthenticated(false); }}>Sign out</button>
+        <ReviewModeration />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -86,7 +101,7 @@ export default function Admin() {
               <h2 className="text-2xl font-bold mb-6 text-white border-b border-white/10 pb-4">
                 {editingCarpet ? 'Edit Carpet' : 'Add New Carpet'}
               </h2>
-              <AdminForm
+              <AdminForm key={formKey}
                 onSubmit={editingCarpet ? handleUpdate : handleCreate}
                 initialData={editingCarpet}
                 buttonText={editingCarpet ? 'Update Carpet' : 'Add Carpet'}
@@ -123,7 +138,7 @@ export default function Admin() {
                     <div className="flex items-center gap-4 mb-4 sm:mb-0 w-full sm:w-auto">
                       <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-white/10">
                         <img
-                          src={carpet.imageUrl}
+                          src={getImageUrl(carpet.imageUrl)}
                           alt={carpet.title}
                           className="w-full h-full object-cover"
                         />
