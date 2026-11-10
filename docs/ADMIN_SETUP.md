@@ -34,6 +34,16 @@ PORT=5000
 
 Restart `npm start` after the database is ready. `/api/health` reports database connectivity. Catalog, order and review APIs return a clear 503 while disconnected instead of waiting on database queries.
 
+The local Compose configuration lets glibc register rseq (`GLIBC_TUNABLES=glibc.pthread.rseq=1`) so TCMalloc falls back to per-thread caches. This avoids the per-CPU allocator path affected by [MongoDB SERVER-121912](https://jira.mongodb.org/browse/SERVER-121912) on this machine's kernel. This is a local development compatibility setting, not a production performance recommendation. MongoDB's [allocator documentation](https://www.mongodb.com/docs/manual/administration/tcmalloc-performance/) describes the registration and cache behavior. Prefer a supported kernel/build combination for production.
+
+Verify the development fallback after startup:
+
+```bash
+docker compose exec -T mongodb mongosh --quiet --eval 'db.serverStatus().tcmalloc.usingPerCPUCaches'
+```
+
+It should report `false` with this configuration.
+
 Stop the database without deleting its data:
 
 ```bash
