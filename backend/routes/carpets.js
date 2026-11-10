@@ -38,7 +38,7 @@ async function saveRug(req, res, next) {
   try {
     const rug = req.params.id ? await Carpet.findById(req.params.id) : new Carpet();
     if (!rug) return res.status(404).json({ message: 'Rug not found' });
-    for (const field of ['title', 'description', 'category', 'material', 'dimensions', 'price']) if (req.body[field] !== undefined) rug[field] = req.body[field];
+    for (const field of ['title', 'description', 'category', 'country', 'material', 'dimensions', 'price']) if (req.body[field] !== undefined) rug[field] = req.body[field];
     const files = req.files || [];
     const extensions = files.map(f => imageExtension(f.buffer));
     if (extensions.some(x => !x)) return res.status(400).json({ message: 'Only valid JPEG, PNG and WebP photos are supported' });

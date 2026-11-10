@@ -5,7 +5,7 @@ export const getAllCarpets = async () => (await api.get('/carpets')).data;
 export const getCarpetById = async id => (await api.get(`/carpets/${id}`)).data;
 function payload(form) {
   const data = new FormData();
-  for (const field of ['title', 'price', 'description', 'category', 'material', 'dimensions']) data.append(field, form[field] ?? '');
+  for (const field of ['title', 'price', 'description', 'category', 'country', 'material', 'dimensions']) data.append(field, form[field] ?? '');
   for (const file of form.images || []) data.append('images', file);
   return data;
 }
