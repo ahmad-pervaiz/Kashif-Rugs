@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { getAllCarpets, getImageUrl } from '../services/carpetService';
 import { useCart } from '../context/CartContext';
 import { motion } from 'framer-motion';
-import { RUG_CATEGORIES } from '../rugCategories';
+import { RUG_CATEGORIES, RUG_CATEGORY_GROUPS } from '../rugCategories';
 
 export default function Carpets() {
+  const [country, setCountry] = useState('All');
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('newest');
@@ -71,7 +72,7 @@ export default function Carpets() {
     show: { opacity: 1, y: 0 }
   };
 
-  const visible = carpets.filter(r => (category === 'All' || (r.category || 'Rugs') === category) && `${r.title} ${r.description}`.toLowerCase().includes(search.toLowerCase()));
+  const visible = carpets.filter(r => (category === 'All' || (r.category || 'Rugs') === category) && (country === 'All' || r.country === country) && `${r.title} ${r.description}`.toLowerCase().includes(search.toLowerCase()));
   if (sort !== 'newest') visible.sort((a,b) => sort === 'low' ? a.price - b.price : b.price - a.price);
   return (
     <div className="min-h-screen bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
@@ -88,12 +89,13 @@ export default function Carpets() {
           <div className="h-1 w-24 bg-accent-blue mx-auto rounded-full"></div>
         </motion.div>
 
-        <div className="grid sm:grid-cols-3 gap-4 mb-8 text-gray-300">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 text-gray-300">
           <label>Search rugs<input className="input" type="search" value={search} onChange={e => setSearch(e.target.value)} /></label>
-          <label>Rug category<select className="input" value={category} onChange={e => setCategory(e.target.value)}>{['All', ...new Set([...RUG_CATEGORIES.map(c => c.name), ...carpets.map(r => r.category || 'Rugs')])].map(c => <option key={c}>{c}</option>)}</select></label>
+          <label>Country<select className="input" value={country} onChange={e => { setCountry(e.target.value); setCategory('All'); }}><option value="All">All countries</option>{RUG_CATEGORY_GROUPS.map(g => <option key={g.country}>{g.country}</option>)}</select></label>
+          <label>Rug category<select className="input" value={category} onChange={e => setCategory(e.target.value)}>{['All', ...new Set([...RUG_CATEGORIES.filter(c => country === 'All' || c.country === country).map(c => c.name), ...carpets.filter(r => country === 'All' || r.country === country).map(r => r.category || 'Rugs')])].map(c => <option key={c}>{c}</option>)}</select></label>
           <label>Sort by<select className="input" value={sort} onChange={e => setSort(e.target.value)}><option value="newest">Newest</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select></label>
         </div>
-        <p className="text-gray-400 mb-4" role="status">{visible.length} rugs found{RUG_CATEGORIES.find(c => c.name === category) && ` · ${RUG_CATEGORIES.find(c => c.name === category).description}`}</p>
+        <p className="text-gray-400 mb-4" role="status">{visible.length} rugs found</p>
         {visible.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-xl text-gray-500">
@@ -135,6 +137,7 @@ export default function Carpets() {
                       </p>
                     </div>
 
+                    <p className="text-gray-400 text-sm mb-2">{carpet.category || 'Rugs'}{carpet.country ? ` · ${carpet.country}` : ''}</p>
                     <p className="text-gray-400 text-sm mb-6 line-clamp-2 h-10">
                       {carpet.description}
                     </p>

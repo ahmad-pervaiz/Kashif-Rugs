@@ -8,25 +8,31 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Admin() {
   const [authenticated, setAuthenticated] = useState(false)
-  const [token, setToken] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [adminEmail, setAdminEmail] = useState('')
+  const [signingIn, setSigningIn] = useState(false)
   const [authError, setAuthError] = useState('')
   const [formKey, setFormKey] = useState(0)
   const [carpets, setCarpets] = useState([])
+  const [catalogError, setCatalogError] = useState('')
   const [editingCarpet, setEditingCarpet] = useState(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     fetchCarpets()
+    const expired = () => { setAuthenticated(false); setAdminEmail(''); setAuthError('Your session expired. Please sign in again.'); }
+    window.addEventListener('admin-session-expired', expired)
+    return () => window.removeEventListener('admin-session-expired', expired)
   }, [])
 
   const fetchCarpets = async () => {
     try {
       const data = await getAllCarpets()
       setCarpets(data)
+      setCatalogError('')
     } catch (err) {
-      console.error(err)
-      // Removing alert on load to avoid annoyance if backend is down initially, or keep it if critical.
-      // alert('Failed to fetch carpets')
+      setCatalogError(err.response?.data?.message || 'Unable to load rugs. Check the backend and database connection.')
     }
   }
 
@@ -74,10 +80,19 @@ export default function Admin() {
   }
 
   if (!authenticated) return <div className="max-w-lg mx-auto p-8 text-white"><h1 className="text-3xl mb-6">Store administration</h1><form className="space-y-4" onSubmit={async e => {
-    e.preventDefault(); setAdminToken(token);
-    try { await api.get('/reviews', { headers: adminHeaders() }); setAuthenticated(true); setToken(''); setAuthError(''); }
-    catch { setAdminToken(''); setAuthError('Access denied. Check your admin token and server configuration.'); }
-  }}><label>Admin token<input className="input mt-2" type="password" autoComplete="off" required value={token} onChange={e => setToken(e.target.value)} /></label><button className="bg-blue-600 rounded px-5 py-3">Sign in</button><p role="alert">{authError}</p></form></div>
+    e.preventDefault(); setSigningIn(true); setAuthError('');
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
+      setAdminToken(data.token); setAdminEmail(data.email); setAuthenticated(true); setPassword(''); fetchCarpets();
+    } catch (error) {
+      setAdminToken(''); setPassword('');
+      setAuthError(error.response?.data?.message || 'Unable to sign in. Check that the backend is running.');
+    } finally { setSigningIn(false); }
+  }}>
+    <label className="block">Admin email<input className="input mt-2" type="email" autoComplete="username" required maxLength="254" value={email} onChange={e => setEmail(e.target.value)} /></label>
+    <label className="block">Password<input className="input mt-2" type="password" autoComplete="current-password" required maxLength="1024" value={password} onChange={e => setPassword(e.target.value)} /></label>
+    <button disabled={signingIn} className="bg-blue-600 rounded px-5 py-3 disabled:opacity-50">{signingIn ? 'Signing in…' : 'Sign in'}</button><p role="alert">{authError}</p>
+  </form></div>
   return (
     <div className="min-h-screen bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -89,7 +104,13 @@ export default function Admin() {
           Admin Panel
         </motion.h1>
 
-        <button className="text-white mb-6 underline" onClick={() => { setAdminToken(''); setAuthenticated(false); }}>Sign out</button>
+        <p className="text-gray-300 mb-2">Signed in as {adminEmail}</p>
+        <button className="text-white mb-6 underline" onClick={async () => {
+          try { await api.post('/auth/logout', {}, { headers: adminHeaders() }); }
+          catch { setAuthError('Server sign-out could not be confirmed. The session expires automatically within one hour.'); }
+          finally { setAdminToken(''); setAuthenticated(false); setAdminEmail(''); }
+        }}>Sign out</button>
+        {catalogError && <div role="alert" className="text-amber-300 border border-amber-700 rounded p-4 mb-6"><p>{catalogError}</p><button className="underline mt-2" onClick={fetchCarpets}>Retry loading rugs</button></div>}
         <ReviewModeration />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <motion.div

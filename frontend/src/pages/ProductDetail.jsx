@@ -124,6 +124,7 @@ export default function ProductDetail() {
               </div>
 
               <p className="text-gray-300">Category: {carpet.category || 'Rugs'}</p>
+              {carpet.country && <p className="text-gray-300">Country: {carpet.country}</p>}
               {carpet.material && <p className="text-gray-300">Material: {carpet.material}</p>}
               {carpet.dimensions && <p className="text-gray-300">Dimensions: {carpet.dimensions}</p>}
               <div className="flex flex-wrap gap-2 my-4">{(carpet.images?.length ? carpet.images : [carpet.imageUrl]).map((url, i) => <button key={url} onClick={() => setSelectedImage(url)} aria-label={`View rug photo ${i + 1}`} aria-pressed={selectedImage === url}><img src={getImageUrl(url)} alt={`${carpet.title}, photo ${i + 1}`} className="w-20 h-20 object-cover rounded border border-gray-500" /></button>)}</div>

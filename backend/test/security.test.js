@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { requireAdmin } from '../middleware/admin.js';
+import { requireAdmin, createSession, revokeSession } from '../middleware/admin.js';
 import { imageExtension } from '../routes/carpets.js';
 import Review from '../models/Review.js';
 function authorize(token) {
@@ -9,17 +9,28 @@ function authorize(token) {
   requireAdmin({ headers: { authorization: token } }, res, () => { passed = true; });
   return { status, passed };
 }
-test('admin access fails closed and only accepts the configured token', () => {
-  const old = process.env.ADMIN_TOKEN;
+test('admin access requires a live session and rejects old shared tokens', () => {
+  const old = process.env.ADMIN_ACCOUNTS;
+  const account = { email: 'admin@example.com', passwordHash: `scrypt:${'0'.repeat(32)}:${'0'.repeat(128)}` };
   try {
-    delete process.env.ADMIN_TOKEN;
+    delete process.env.ADMIN_ACCOUNTS;
     assert.equal(authorize('Bearer test').status, 503);
-    process.env.ADMIN_TOKEN = 'a'.repeat(40);
+    process.env.ADMIN_ACCOUNTS = JSON.stringify([account]);
     assert.equal(authorize('').status, 401);
-    assert.equal(authorize('a'.repeat(40)).status, 401);
-    assert.equal(authorize('Bearer ' + 'b'.repeat(40)).status, 401);
-    assert.equal(authorize('Bearer ' + 'a'.repeat(40)).passed, true);
-  } finally { if (old === undefined) delete process.env.ADMIN_TOKEN; else process.env.ADMIN_TOKEN = old; }
+    assert.equal(authorize('Bearer ' + 'a'.repeat(40)).status, 401);
+    const session = createSession(account);
+    assert.equal(authorize('Bearer ' + session.token).passed, true);
+    assert.equal(authorize(session.token).status, 401);
+    revokeSession({ headers: { authorization: 'Bearer ' + session.token } });
+    assert.equal(authorize('Bearer ' + session.token).status, 401);
+    const expired = createSession(account, Date.now() - 3600001);
+    assert.equal(authorize('Bearer ' + expired.token).status, 401);
+    const changed = createSession(account);
+    process.env.ADMIN_ACCOUNTS = JSON.stringify([{ ...account, passwordHash: `scrypt:${'1'.repeat(32)}:${'1'.repeat(128)}` }]);
+    assert.equal(authorize('Bearer ' + changed.token).status, 401);
+    process.env.ADMIN_ACCOUNTS = 'invalid JSON';
+    assert.equal(authorize('').status, 503);
+  } finally { if (old === undefined) delete process.env.ADMIN_ACCOUNTS; else process.env.ADMIN_ACCOUNTS = old; }
 });
 test('HTML and SVG payloads cannot masquerade as raster photo uploads', () => {
   assert.equal(imageExtension(Buffer.from('<svg onload="alert(1)"></svg>')), null);

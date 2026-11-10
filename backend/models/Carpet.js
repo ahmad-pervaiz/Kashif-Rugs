@@ -23,6 +23,7 @@ const carpetSchema = new mongoose.Schema({
     required: [true, 'Image is required']
   },
   category: { type: String, trim: true, maxlength: 80, default: 'Rugs' },
+  country: { type: String, enum: ['', 'Pakistan', 'Afghanistan'], default: '' },
   material: { type: String, trim: true, maxlength: 120, default: '' },
   dimensions: { type: String, trim: true, maxlength: 120, default: '' },
   images: { type: [String], default: [] },
