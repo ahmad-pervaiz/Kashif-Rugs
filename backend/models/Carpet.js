@@ -4,6 +4,7 @@ const carpetSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, 'Title is required'],
+    maxlength: 120,
     trim: true
   },
   price: {
@@ -14,12 +15,17 @@ const carpetSchema = new mongoose.Schema({
   description: {
     type: String,
     required: [true, 'Description is required'],
+    maxlength: 10000,
     trim: true
   },
   imageUrl: {
     type: String,
     required: [true, 'Image is required']
   },
+  category: { type: String, trim: true, maxlength: 80, default: 'Rugs' },
+  material: { type: String, trim: true, maxlength: 120, default: '' },
+  dimensions: { type: String, trim: true, maxlength: 120, default: '' },
+  images: { type: [String], default: [] },
   createdAt: {
     type: Date,
     default: Date.now
