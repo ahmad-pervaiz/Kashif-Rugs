@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getCarpetById, getImageUrl } from '../services/carpetService';
 import { useCart } from '../context/CartContext';
+import RugReviews from '../components/RugReviews';
 import { motion } from 'framer-motion';
 
 export default function ProductDetail() {
@@ -11,6 +12,7 @@ export default function ProductDetail() {
   const [carpet, setCarpet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState('');
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -22,6 +24,8 @@ export default function ProductDetail() {
       setLoading(true);
       const data = await getCarpetById(id);
       setCarpet(data);
+      setSelectedImage(data.imageUrl);
+      setError(null);
     } catch (err) {
       setError('Failed to load carpet details');
       console.error(err);
@@ -83,7 +87,7 @@ export default function ProductDetail() {
                 initial={{ scale: 1.1 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.8 }}
-                src={getImageUrl(carpet.imageUrl)}
+                src={getImageUrl(selectedImage)}
                 alt={carpet.title}
                 className="w-full h-full object-cover"
               />
@@ -119,6 +123,10 @@ export default function ProductDetail() {
                 </motion.p>
               </div>
 
+              <p className="text-gray-300">Category: {carpet.category || 'Rugs'}</p>
+              {carpet.material && <p className="text-gray-300">Material: {carpet.material}</p>}
+              {carpet.dimensions && <p className="text-gray-300">Dimensions: {carpet.dimensions}</p>}
+              <div className="flex flex-wrap gap-2 my-4">{(carpet.images?.length ? carpet.images : [carpet.imageUrl]).map((url, i) => <button key={url} onClick={() => setSelectedImage(url)} aria-label={`View rug photo ${i + 1}`} aria-pressed={selectedImage === url}><img src={getImageUrl(url)} alt={`${carpet.title}, photo ${i + 1}`} className="w-20 h-20 object-cover rounded border border-gray-500" /></button>)}</div>
               {/* Quantity and Add to Cart */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -160,6 +168,7 @@ export default function ProductDetail() {
             </div>
           </div>
         </motion.div>
+        <RugReviews key={id} id={id} />
       </div>
     </div>
   );

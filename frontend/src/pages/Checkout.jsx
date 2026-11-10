@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { createOrder } from '../services/orderService';
 import { motion } from 'framer-motion';
@@ -243,6 +243,7 @@ export default function Checkout() {
                 </div>
               )}
 
+              <p className="text-sm text-gray-400">This submits an order request. The store will confirm availability, delivery costs and payment arrangements. No online payment is collected here. Read our <Link className="underline" to="/privacy">privacy information</Link> before submitting.</p>
               <button
                 type="submit"
                 disabled={loading}
@@ -275,7 +276,7 @@ export default function Checkout() {
                 ))}
                 <div className="border-t border-white/10 pt-4">
                   <div className="flex justify-between text-xl font-bold text-white">
-                    <span>Total</span>
+                    <span>Items subtotal</span>
                     <span className="text-accent-blue">${getCartTotal().toLocaleString()}</span>
                   </div>
                 </div>

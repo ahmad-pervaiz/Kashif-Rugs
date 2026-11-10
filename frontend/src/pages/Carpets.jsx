@@ -3,8 +3,12 @@ import { Link } from 'react-router-dom';
 import { getAllCarpets, getImageUrl } from '../services/carpetService';
 import { useCart } from '../context/CartContext';
 import { motion } from 'framer-motion';
+import { RUG_CATEGORIES } from '../rugCategories';
 
 export default function Carpets() {
+  const [category, setCategory] = useState('All');
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('newest');
   const [carpets, setCarpets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -67,6 +71,8 @@ export default function Carpets() {
     show: { opacity: 1, y: 0 }
   };
 
+  const visible = carpets.filter(r => (category === 'All' || (r.category || 'Rugs') === category) && `${r.title} ${r.description}`.toLowerCase().includes(search.toLowerCase()));
+  if (sort !== 'newest') visible.sort((a,b) => sort === 'low' ? a.price - b.price : b.price - a.price);
   return (
     <div className="min-h-screen bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -82,10 +88,16 @@ export default function Carpets() {
           <div className="h-1 w-24 bg-accent-blue mx-auto rounded-full"></div>
         </motion.div>
 
-        {carpets.length === 0 ? (
+        <div className="grid sm:grid-cols-3 gap-4 mb-8 text-gray-300">
+          <label>Search rugs<input className="input" type="search" value={search} onChange={e => setSearch(e.target.value)} /></label>
+          <label>Rug category<select className="input" value={category} onChange={e => setCategory(e.target.value)}>{['All', ...new Set([...RUG_CATEGORIES.map(c => c.name), ...carpets.map(r => r.category || 'Rugs')])].map(c => <option key={c}>{c}</option>)}</select></label>
+          <label>Sort by<select className="input" value={sort} onChange={e => setSort(e.target.value)}><option value="newest">Newest</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select></label>
+        </div>
+        <p className="text-gray-400 mb-4" role="status">{visible.length} rugs found{RUG_CATEGORIES.find(c => c.name === category) && ` · ${RUG_CATEGORIES.find(c => c.name === category).description}`}</p>
+        {visible.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-xl text-gray-500">
-              No carpets available yet. Add some from the Admin panel!
+              No rugs match your selection.
             </p>
           </div>
         ) : (
@@ -95,7 +107,7 @@ export default function Carpets() {
             animate="show"
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
           >
-            {carpets.map(carpet => (
+            {visible.map(carpet => (
               <motion.div variants={item} key={carpet._id}>
                 <Link
                   to={`/carpets/${carpet._id}`}
