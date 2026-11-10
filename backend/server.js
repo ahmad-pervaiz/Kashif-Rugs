@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import authRoutes from './routes/auth.js';
 import carpetRoutes from './routes/carpets.js';
 import reviewRoutes from './routes/reviews.js';
 import { rateLimit } from './middleware/limits.js';
@@ -35,7 +36,18 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB Connected'))
-  .catch((err) => console.error('❌ MongoDB Connection Error:', err));
+  .catch(() => console.error('❌ MongoDB unavailable. Start the local database with: docker compose up -d mongodb, then restart the backend.'));
+
+// Sign-in remains available while the catalog database is offline.
+app.use('/api/auth', authRoutes);
+app.get('/api/health', (req, res) => {
+  const connected = mongoose.connection.readyState === 1;
+  res.status(connected ? 200 : 503).json({ status: connected ? 'ok' : 'unavailable', database: connected ? 'connected' : 'disconnected' });
+});
+app.use(['/api/carpets', '/api/orders', '/api/reviews'], (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) return res.status(503).json({ message: 'The store database is unavailable. Please try again shortly.' });
+  next();
+});
 
 // Routes
 app.use('/api/carpets', carpetRoutes);

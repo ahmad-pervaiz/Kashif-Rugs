@@ -11,11 +11,11 @@ test('order routes keep customer data private and ignore client supplied prices'
   const server = app.listen(0, '127.0.0.1');
   await new Promise(resolve => server.once('listening', resolve));
   const url = `http://127.0.0.1:${server.address().port}/orders`;
-  const oldToken = process.env.ADMIN_TOKEN;
+  const oldToken = process.env.ADMIN_ACCOUNTS;
   const oldFind = Carpet.findById, oldSave = Order.prototype.save, oldOrderFind = Order.findById;
   let stored;
   try {
-    process.env.ADMIN_TOKEN = 'x'.repeat(40);
+    process.env.ADMIN_ACCOUNTS = JSON.stringify([{ email: 'admin@example.com', passwordHash: `scrypt:${'0'.repeat(32)}:${'0'.repeat(128)}` }]);
     for (const suffix of ['', '/507f1f77bcf86cd799439011']) {
       const response = await fetch(url + suffix);
       assert.equal(response.status, 401);
@@ -35,7 +35,7 @@ test('order routes keep customer data private and ignore client supplied prices'
     assert.equal(invalid.status, 400);
   } finally {
     Carpet.findById = oldFind; Order.prototype.save = oldSave; Order.findById = oldOrderFind;
-    if (oldToken === undefined) delete process.env.ADMIN_TOKEN; else process.env.ADMIN_TOKEN = oldToken;
+    if (oldToken === undefined) delete process.env.ADMIN_ACCOUNTS; else process.env.ADMIN_ACCOUNTS = oldToken;
     await new Promise(resolve => server.close(resolve));
   }
 });
