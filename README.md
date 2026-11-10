@@ -1,3 +1,5 @@
+> Updated implementation status, secure setup, upload behavior and launch blockers: [Project status](docs/PROJECT_STATUS.md). This store is not yet ready for paid public sales.
+
 # Kashif Rugs - E-Commerce Website
 
 A full-featured e-commerce website for selling hand-knotted carpets, built with React and Node.js.
