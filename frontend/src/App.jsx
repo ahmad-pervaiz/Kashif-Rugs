@@ -9,6 +9,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Privacy from './pages/Privacy';
 import Admin from './pages/Admin';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/privacy" element={<Privacy />} />
               <Route path="/admin" element={<Admin />} />
             </Routes>
           </main>
