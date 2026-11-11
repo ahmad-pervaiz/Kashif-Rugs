@@ -2,13 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kashif Rugs</title>
+    <meta name="theme-color" content="#f7f5f0" />
+    <meta name="description" content="Discover handmade rugs from Pakistan and Afghanistan. Explore the Kashif Rugs collection, from Bokhara and Chobi Ziegler to tribal kilims." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Kashif Rugs — Handmade, for living.</title>
+    <script>
+      try {
+        const saved = localStorage.getItem('kashifRugsTheme');
+        document.documentElement.dataset.theme = saved === 'light' || saved === 'dark' ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      } catch { document.documentElement.dataset.theme = 'light'; }
+      document.documentElement.style.colorScheme = document.documentElement.dataset.theme;
+    </script>
   </head>
-  <body style="margin: 0; padding: 0;">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-

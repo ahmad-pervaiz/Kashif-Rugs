@@ -11,37 +11,28 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
-
-  // Load cart from localStorage on mount
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('kashifRugsCart') || '[]');
+      return Array.isArray(saved) ? saved.filter(item => item && typeof item._id === 'string' && Number.isFinite(item.price) && Number.isInteger(item.quantity) && item.quantity > 0 && item.quantity <= 100) : [];
+    } catch { return []; }
+  });
   useEffect(() => {
-    const savedCart = localStorage.getItem('kashifRugsCart');
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Error loading cart from localStorage:', error);
-      }
-    }
-  }, []);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('kashifRugsCart', JSON.stringify(cartItems));
+    try { localStorage.setItem('kashifRugsCart', JSON.stringify(cartItems)); } catch { /* Shopping remains available without storage. */ }
   }, [cartItems]);
 
   const addToCart = (carpet) => {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item._id === carpet._id);
-      
+
       if (existingItem) {
         return prevItems.map((item) =>
           item._id === carpet._id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: Math.min(100, item.quantity + 1) }
             : item
         );
       }
-      
+
       return [...prevItems, { ...carpet, quantity: 1 }];
     });
   };
@@ -55,7 +46,7 @@ export const CartProvider = ({ children }) => {
       removeFromCart(carpetId);
       return;
     }
-    
+
     setCartItems((prevItems) =>
       prevItems.map((item) =>
         item._id === carpetId ? { ...item, quantity } : item

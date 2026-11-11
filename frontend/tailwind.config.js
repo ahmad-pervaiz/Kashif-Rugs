@@ -1,25 +1,12 @@
-/** @type {import('tailwindcss').Config} */
+const color = name => `rgb(var(--${name}) / <alpha-value>)`;
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {
-      colors: {
-        dark: {
-          bg: '#0a0a0a',
-          surface: '#1a1a1a',
-          border: '#2a2a2a',
-          text: '#e5e5e5',
-          muted: '#888888'
-        },
-        accent: {
-          blue: '#1e40af',
-          brown: '#78350f'
-        }
-      }
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: { extend: {
+    colors: {
+      ink: color('ink'), paper: color('paper'), panel: color('panel'), muted: color('muted'), line: color('line'), tint: color('tint'), danger: color('danger'), success: color('success'),
+      dark: { bg: color('paper'), surface: color('panel'), border: color('line'), text: color('ink'), muted: color('muted') },
+      accent: { blue: color('ink'), brown: color('muted') },
     },
-  },
+  } },
   plugins: [],
-}
+};
