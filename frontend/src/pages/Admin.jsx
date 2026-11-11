@@ -4,7 +4,6 @@ import ReviewModeration from '../components/ReviewModeration'
 import { getImageUrl } from '../services/carpetService'
 import AdminForm from '../components/AdminForm'
 import { getAllCarpets, createCarpet, updateCarpet, deleteCarpet } from '../services/carpetService'
-import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Admin() {
   const [authenticated, setAuthenticated] = useState(false)
@@ -43,9 +42,6 @@ export default function Admin() {
       setFormKey(k => k + 1)
       alert('Rug added successfully!')
       fetchCarpets()
-      // Clear form logic might be needed here, but AdminForm state might persist.
-      // Actually AdminForm state resets if initialData changes or we might need a way to reset it.
-      // But for now let's assume it's fine.
     } catch (err) {
       alert('Failed to add rug: ' + (err.response?.data?.message || err.message))
     } finally {
@@ -79,7 +75,7 @@ export default function Admin() {
     }
   }
 
-  if (!authenticated) return <div className="max-w-lg mx-auto p-8 text-white"><h1 className="text-3xl mb-6">Store administration</h1><form className="space-y-4" onSubmit={async e => {
+  if (!authenticated) return <div className="max-w-lg mx-auto p-8 text-ink"><p className="eyebrow">Kashif Rugs</p><h1 className="page-title">Store administration</h1><form className="space-y-4" onSubmit={async e => {
     e.preventDefault(); setSigningIn(true); setAuthError('');
     try {
       const { data } = await api.post('/auth/login', { email, password });
@@ -91,35 +87,30 @@ export default function Admin() {
   }}>
     <label className="block">Admin email<input className="input mt-2" type="email" autoComplete="username" required maxLength="254" value={email} onChange={e => setEmail(e.target.value)} /></label>
     <label className="block">Password<input className="input mt-2" type="password" autoComplete="current-password" required maxLength="1024" value={password} onChange={e => setPassword(e.target.value)} /></label>
-    <button disabled={signingIn} className="bg-blue-600 rounded px-5 py-3 disabled:opacity-50">{signingIn ? 'Signing in…' : 'Sign in'}</button><p role="alert">{authError}</p>
+    <button disabled={signingIn} className="bg-ink text-paper rounded-none px-5 py-3 disabled:opacity-50">{signingIn ? 'Signing in…' : 'Sign in'}</button><p role="alert">{authError}</p>
   </form></div>
   return (
-    <div className="min-h-screen bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-paper py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-3xl md:text-4xl font-bold mb-10 text-center text-white"
+        <h1
+          className="page-title text-center mb-10"
         >
           Admin Panel
-        </motion.h1>
+        </h1>
 
-        <p className="text-gray-300 mb-2">Signed in as {adminEmail}</p>
-        <button className="text-white mb-6 underline" onClick={async () => {
+        <p className="text-ink mb-2">Signed in as {adminEmail}</p>
+        <button className="text-ink mb-6 underline" onClick={async () => {
           try { await api.post('/auth/logout', {}, { headers: adminHeaders() }); }
           catch { setAuthError('Server sign-out could not be confirmed. The session expires automatically within one hour.'); }
           finally { setAdminToken(''); setAuthenticated(false); setAdminEmail(''); }
         }}>Sign out</button>
-        {catalogError && <div role="alert" className="text-amber-300 border border-amber-700 rounded p-4 mb-6"><p>{catalogError}</p><button className="underline mt-2" onClick={fetchCarpets}>Retry loading rugs</button></div>}
+        {catalogError && <div role="alert" className="text-danger border border-danger rounded-none p-4 mb-6"><p>{catalogError}</p><button className="underline mt-2" onClick={fetchCarpets}>Retry loading rugs</button></div>}
         <ReviewModeration />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
+          <div
           >
-            <div className="bg-dark-surface border border-white/5 rounded-xl shadow-xl p-8 sticky top-24">
-              <h2 className="text-2xl font-bold mb-6 text-white border-b border-white/10 pb-4">
+            <div className="bg-panel border border-line rounded-none  p-8 sticky top-24">
+              <h2 className="text-2xl font-medium mb-6 text-ink border-b border-line pb-4">
                 {editingCarpet ? 'Edit Carpet' : 'Add New Carpet'}
               </h2>
               <AdminForm key={formKey}
@@ -130,34 +121,27 @@ export default function Admin() {
               {editingCarpet && (
                 <button
                   onClick={() => setEditingCarpet(null)}
-                  className="mt-4 text-gray-400 hover:text-white hover:underline block text-center w-full transition-colors"
+                  className="mt-4 text-muted hover:text-ink hover:underline block text-center w-full transition-colors"
                 >
                   Cancel Editing
                 </button>
               )}
-              {loading && <p className="text-center text-accent-blue mt-4 font-medium animate-pulse">Processing...</p>}
+              {loading && <p className="text-center text-ink mt-4 font-medium animate-pulse">Processing...</p>}
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
+          <div
           >
-            <h2 className="text-2xl font-bold mb-6 text-white border-b border-white/10 pb-4">All Carpets ({carpets.length})</h2>
+            <h2 className="text-2xl font-medium mb-6 text-ink border-b border-line pb-4">All Carpets ({carpets.length})</h2>
             <div className="space-y-4">
-              <AnimatePresence>
+              <>
                 {carpets.map((carpet) => (
-                  <motion.div
+                  <div
                     key={carpet._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    layout
-                    className="bg-dark-surface border border-white/5 rounded-xl p-5 flex flex-col sm:flex-row justify-between items-center shadow-lg hover:border-white/20 transition-all duration-200"
+                    className="bg-panel border border-line rounded-none p-5 flex flex-col sm:flex-row justify-between items-center  hover:border-line transition-all duration-200"
                   >
                     <div className="flex items-center gap-4 mb-4 sm:mb-0 w-full sm:w-auto">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-white/10">
+                      <div className="w-16 h-16 rounded-none overflow-hidden flex-shrink-0 border border-line">
                         <img
                           src={getImageUrl(carpet.imageUrl)}
                           alt={carpet.title}
@@ -165,34 +149,34 @@ export default function Admin() {
                         />
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg text-white">{carpet.title}</h3>
-                        <p className="text-accent-blue font-mono font-medium">${carpet.price}</p>
+                        <h3 className="font-medium text-lg text-ink">{carpet.title}</h3>
+                        <p className="text-ink font-mono font-medium">${carpet.price}</p>
                       </div>
                     </div>
                     <div className="flex space-x-3 w-full sm:w-auto justify-end">
                       <button
                         onClick={() => setEditingCarpet(carpet)}
-                        className="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 px-4 py-2 rounded-lg transition-colors duration-200 font-medium border border-blue-500/30"
+                        className="bg-tint hover:bg-tint text-ink px-4 py-2 rounded-none transition-colors duration-200 font-medium border border-line"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(carpet._id)}
-                        className="bg-red-600/20 hover:bg-red-600/40 text-red-400 px-4 py-2 rounded-lg transition-colors duration-200 font-medium border border-red-500/30"
+                        className="bg-danger/10 hover:bg-danger/20 text-danger px-4 py-2 rounded-none transition-colors duration-200 font-medium border border-danger"
                       >
                         Delete
                       </button>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </AnimatePresence>
+              </>
               {carpets.length === 0 && (
-                <div className="text-center py-12 bg-dark-surface border border-white/5 rounded-xl">
-                  <p className="text-gray-400 text-lg">No carpets found.</p>
+                <div className="text-center py-12 bg-panel border border-line rounded-none">
+                  <p className="text-muted text-lg">No carpets found.</p>
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

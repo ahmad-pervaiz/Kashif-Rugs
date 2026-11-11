@@ -10,3 +10,7 @@ backend/uploads/*
 *_log*.txt
 .DS_Store
 coverage/
+
+# Local browser verification output
+**/test-results/
+**/playwright-report/
